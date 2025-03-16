@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GPS Трекер Карта</title>
+
+    <!-- Google Maps API -->
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB0bdK0_mwwjL99vJAYI0y628j_8dOLGHI&callback=initMap"></script>
+
+    <style>
+        #map { height: 500px; width: 100%; }
+    </style>
+</head>
+<body>
+    <h1>GPS Трекер Карта</h1>
+    <div id="map"></div>
+
+    <script>
+        let map, marker;
+
+        function initMap() {
+            map = new google.maps.Map(document.getElementById("map"), {
+                zoom: 15,
+                center: { lat: 0, lng: 0 } // Уақытша координата (кейін Firebase жаңартады)
+            });
+
+            marker = new google.maps.Marker({
+                position: { lat: 0, lng: 0 },
+                map: map,
+                title: "GPS Орны"
+            });
+        }
+
+        // 🔥 initMap-ты глобалдық деңгейге шығару
+        window.initMap = initMap;
+    </script>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAg8l14Q6quOVCRPcWELN0VPL-pyKWWdwA",
+            authDomain: "gps-90a08.firebaseapp.com",
+            databaseURL: "https://gps-90a08-default-rtdb.firebaseio.com",
+            projectId: "gps-90a08",
+            storageBucket: "gps-90a08.firebasestorage.app",
+            messagingSenderId: "364869491896",
+            appId: "1:364869491896:web:a270791afd2d528e3de84d"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+
+        // Firebase арқылы деректерді жаңарту
+        const gpsRef = ref(database, "/gps");
+        onValue(gpsRef, (snapshot) => {
+            const data = snapshot.val();
+            if (data) {
+                if (!map) {
+                    map = new google.maps.Map(document.getElementById("map"), {
+                        zoom: 15,
+                        center: { lat: data.latitude, lng: data.longitude }
+                    });
+
+                    marker = new google.maps.Marker({
+                        position: { lat: data.latitude, lng: data.longitude },
+                        map: map,
+                        title: "GPS Орны"
+                    });
+                } else {
+                    map.setCenter({ lat: data.latitude, lng: data.longitude });
+                    marker.setPosition({ lat: data.latitude, lng: data.longitude });
+                }
+            }
+        });
+    </script>
+
+</body>
+</html>
